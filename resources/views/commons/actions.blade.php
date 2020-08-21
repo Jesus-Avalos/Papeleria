@@ -1,0 +1,2 @@
+<button type="button" class="btn btn-sm btn-info" wire:click="edit({{ $item->id }})"><i class="fas fa-edit"></i></button>
+<button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $item->id }})"><i class="fas fa-trash"></i></button>
