@@ -3,20 +3,78 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Models\Producto;
 use App\Models\Categoria;
 use App\Models\Cliente;
+use App\Models\Venta;
 
 class Ventas extends Component
 {
+    use WithPagination;
+
     public $categoria_id,$search,$csearch;
     public $listaProductos = [];
-    public $descuento = 0;
-    public $descMode = false;
-    public $subtotal = 0;
-    public $total = 0;
+    public $descMode = false, $action = 1;
+    public $descuento = 0, $subtotal = 0, $total = 0;
     public $cId,$cNombre;
     public $nombre,$direccion,$telefono,$email;
+
+    public function StoreVenta(){
+        if(count($this->listaProductos) > 0){
+            $record = Venta::create([
+                'descuento' => $this->descuento,
+                'articulos' => count($this->listaProductos),
+                'total' => $this->total,
+                'cliente_id' => $this->cId
+            ]);
+            $datos = [];
+            foreach($this->listaProductos as $key => $item){
+                $datos[$item['id']] = [
+                    'subtotal' => $item['cantidad'] * $item['precio'],
+                    'cantidad' => $item['cantidad']
+                ];
+            }
+            $record->productos()->sync($datos);
+            session()->flash('message', 'Venta registrada correctamente.');
+            return redirect()->to('/home');
+        }
+    }
+
+    public function StoreCliente(){
+        $this->validate([
+            'nombre' => 'required',
+            'direccion' => 'required',
+            'telefono' => 'required|min:10',
+            'email' => 'email|nullable|unique:clientes'
+        ]);
+
+        $record = Cliente::create([
+            'nombre' => $this->nombre,
+            'direccion' => $this->direccion,
+            'telefono' => $this->telefono,
+            'email' => $this->email
+        ]);
+        $this->cId = $record->id;
+        $this->cNombre = $record->nombre;
+
+        $this->resetClienteFields();
+
+        $this->emit('msgok','Creado correctamente');
+    }
+
+    public function resetClienteFields(){
+        $this->nombre = '';
+        $this->direccion = '';
+        $this->telefono = '';
+        $this->email = '';
+        $this->action = 1;
+    }
+
+    public function setCliente($id,$nombre){
+        $this->cId = $id;
+        $this->cNombre = $nombre;
+    }
 
     public function mount(){
         $record = Cliente::where('nombre','Cliente Mostrador')->first();
@@ -28,20 +86,17 @@ class Ventas extends Component
         $this->upTotales();
     }
 
-    public function chgMode(){ $this->descMode = !$this->descMode; }
-
     public function upTotales(){
         $data = 0;
         foreach ($this->listaProductos as $value) {
-            $data += $value['cantidad'] * $value['precio'];
+            $data += (($value['cantidad'] > 0) ? $value['cantidad'] : 1) * $value['precio'];
         }
         if($this->descuento > $data) $this->descuento = $data;
         $this->subtotal = $data;
-        $this->total = $data - $this->descuento;
+        $this->total = $data - (($this->descuento > 0) ? $this->descuento : 0);
     }
 
-    public function render()
-    {
+    public function render(){
         if($this->categoria_id <= 0){
             if(strlen($this->search) <= 0)
                 $info = Producto::select('id','nombre')->get();
@@ -58,10 +113,10 @@ class Ventas extends Component
         }
 
         if(strlen($this->csearch) < 0)
-            $clientes = Cliente::select('id','nombre')->get();
+            $clientes = Cliente::select('id','nombre')->orderBy('id','desc')->paginate(10);
         else
             $clientes = Cliente::where('nombre','like','%'.$this->csearch.'%')
-                ->select('nombre','id')->get();
+                ->select('nombre','id')->orderBy('id','desc')->paginate(10);
         
         $categorias = Categoria::select('id','nombre')->get();
 

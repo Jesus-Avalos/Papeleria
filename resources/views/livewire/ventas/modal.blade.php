@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div class="modal fade" id="clientesModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="clientesModal" wire:ignore.self tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -13,17 +13,18 @@
                     @include('livewire.ventas.sclientes')
                 @else
                     @include('livewire.clientes.form')
+                    <hr>
+                    <div class="row m-2 justify-content-end">
+                        <button type="button" class="btn btn-secondary mr-2" wire:click="$set('action',1)">Cancelar</button>
+                        <button type="button" class="btn btn-primary" wire:click="StoreCliente">Registrar</button>
+                    </div>
                 @endif
+
             </div>
             @if ($action == 1)
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-            </div>   
-            @else
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" wire:click="doAction(1)">Cancelar</button>
-                    <button type="button" class="btn btn-primary" wire:click="StoreCliente">Registrar</button>
-                </div>                
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                </div>   
             @endif
         </div>
     </div>

@@ -1,4 +1,5 @@
 <div class="row mx-2 justify-content-around" style="flex:1 1 auto">
+    @include('livewire.ventas.modal')
     <div class="col-12 col-md-6 border border-dark rounded p-3 mb-2">
         <div class="row">
             <div class="col col-sm-6">
@@ -92,17 +93,19 @@
                 <div class="col-3">{{ (count($listaProductos)) ?: 0 }}</div>
                 <div class="col-3">$ {{ $subtotal }}</div>
                 <div class="col-3 input-group">
-                    <input type="number" step="any" min="0" wire:model="descuento" {{ (!$descMode) ? 'readonly' : '' }} 
+                    <input type="number" step="any" min="0" 
+                        onblur="validaDescuento(this.value)"
+                        wire:model="descuento" {{ (!$descMode) ? 'readonly' : '' }} 
                         class="form-control form-control-sm w-50 text-center">
                     <div class="input-group-append">
-                        <button class="btn btn-sm btn-{{ ($descMode) ? 'success' : 'secondary' }}" wire:click="chgMode"><i class="fas fa-{{ ($descMode) ? 'edit' : 'lock' }}"></i></button>
+                        <button class="btn btn-sm btn-{{ ($descMode) ? 'success' : 'secondary' }}" wire:click="$toggle('descMode')"><i class="fas fa-{{ ($descMode) ? 'edit' : 'lock' }}"></i></button>
                     </div>
                 </div>
                 <div class="col-3"><b class="text-success">$ {{ $total }}</b></div>
             </div>
             <div class="row justify-content-end mt-5">
-                <div class="col-4 text-right mr-2">
-                    <button class="btn btn-lg btn-success"><h3>Pagar</h3></button>
+                <div class="col-4 text-right mr-2" >
+                    <button class="btn btn-lg btn-success" wire:click="StoreVenta"><h3>Pagar</h3></button>
                 </div>
             </div>
         </div>
@@ -128,10 +131,19 @@
         });
     });
 
-    function validateCantidad(value, key){
-        let valor = (value > 0) ? value : 1;
-        @this.set('listaProductos.'+key+'.cantidad', valor);
+    function validaDescuento(value){
+        let valor = (value) ? value : -1;
+        if(valor<0) @this.set('descuento',0);
     }
+
+    function validateCantidad(value, key){
+        let valor = (value) ? value : -1;
+        if(valor<0) @this.set('listaProductos.'+key+'.cantidad', 1);
+    }
+
+    window.livewire.on('msgok',msg=>{
+        $('#clientesModal').modal('hide');
+    })
 </script>
 @endpush
 

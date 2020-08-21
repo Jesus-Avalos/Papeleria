@@ -105,13 +105,6 @@
                 title: msg
             })
         })
-
-        window.livewire.on('msg-error', msg => {
-            Toast.fire({
-                icon: 'success',
-                title: msg
-            })
-        })
     </script>
 </body>
 </html>
